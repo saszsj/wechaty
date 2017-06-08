@@ -1,0 +1,1 @@
+{"version":3,"file":"electron.spec.js","sourceRoot":"","sources":["../../test/electron.spec.ts"],"names":[],"mappings":";;;;;;;;;;AAAA;;;;;;GAMG;AACH,6BAA0B;AAE1B,UAAI,CAAC,wBAAwB,EAAE,CAAM,CAAC;IACpC,CAAC,CAAC,IAAI,CAAC,IAAI,EAAE,MAAM,CAAC,CAAA;AACtB,CAAC,CAAA,CAAC,CAAA;AAEF,UAAI,CAAC,IAAI,CAAC,kBAAkB,EAAE,CAAC;IAC7B,CAAC,CAAC,IAAI,CAAC,IAAI,CAAC,CAAA;AACd,CAAC,CAAC,CAAA"}

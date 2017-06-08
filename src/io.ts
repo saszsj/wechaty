@@ -155,7 +155,7 @@ export class Io {
       }
 
       try {
-        const obj = JSON.parse(data)
+        const obj = JSON.parse(data as string)
         ioEvent.name    = obj.name
         ioEvent.payload = obj.payload
       } catch (e) {

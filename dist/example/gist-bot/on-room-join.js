@@ -1,0 +1,57 @@
+"use strict";
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+function onRoomJoin(room, inviteeList, inviter) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const inviteeName = inviteeList.map(c => c.name()).join(', ');
+            /********************************************
+             *
+             * 从这里开始修改 vvvvvvvvvvvv
+             *
+             */
+            if (room.topic() !== 'ding') {
+                this.say('Room ' + room.topic()
+                    + ' got new memeber ' + inviteeName
+                    + ' invited by ' + inviter.name());
+                return;
+            }
+            const inviterIsMyself = inviter.self();
+            if (inviterIsMyself) {
+                room.say('Welcome to my room: ' + inviteeName);
+                return;
+            }
+            room.say('请勿私自拉人。需要拉人请加我', inviter);
+            room.say('请先加我好友，然后我来拉你入群。先把你移出啦。', inviteeList);
+            inviteeList.forEach(c => {
+                room.del(c);
+            });
+            /**
+             *
+             * 到这里结束修改^^^^^^^^^^^^
+             *
+             */
+            /*********************************************/
+        }
+        catch (e) {
+            console.log(e);
+        }
+        return;
+    });
+}
+exports.onRoomJoin = onRoomJoin;
+//# sourceMappingURL=on-room-join.js.map
