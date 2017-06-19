@@ -38,6 +38,7 @@ export interface RoomRawObj {
   OwnerUin:         number,
   ChatRoomOwner:    string,
   MemberList?:      RoomRawMember[],
+  IsOwner:          number,
 }
 
 export type RoomEventName = 'join'
@@ -384,12 +385,10 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public owner(): Contact | null {
-    const ownerUin = this.obj && this.obj.ownerUin
-
     const user = Config.puppetInstance()
                       .user
 
-    if (user && user.get('uin') === ownerUin) {
+    if (this.rawObj.IsOwner === 1) {
       return user
     }
 
