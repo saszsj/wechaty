@@ -9,10 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const ava_1 = require("ava");
@@ -22,7 +33,7 @@ const _1 = require("./puppet-web/");
 const MOCK_USER_ID = 'TEST-USER-ID';
 const puppet = new _1.default();
 puppet.userId = MOCK_USER_ID;
-config_1.Config.puppetInstance(puppet);
+config_1.config.puppetInstance(puppet);
 ava_1.test('constructor()', t => {
     /* tslint:disable:max-line-length */
     const rawData = JSON.parse('{"MsgId":"179242112323992762","FromUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","ToUserName":"@16d20edf23a3bf3bc71bb4140e91619f3ff33b4e33f7fcd25e65c1b02c7861ab","MsgType":1,"Content":"test123","Status":3,"ImgStatus":1,"CreateTime":1461652670,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":179242112323992770,"MMPeerUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigest":"test123","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":true,"LocalID":"179242112323992762","ClientMsgId":"179242112323992762","MMActualContent":"test123","MMActualSender":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigestTime":"14:37","MMDisplayTime":1461652670,"MMTime":"14:37"}');
@@ -77,7 +88,7 @@ ava_1.test.serial('ready()', (t) => __awaiter(this, void 0, void 0, function* ()
             }, 100);
         });
     }
-    config_1.Config.puppetInstance()
+    config_1.config.puppetInstance()
         .getContact = mockGetContact;
     const m = new message_1.default(rawData);
     t.is(m.id, expectedMsgId, 'id/MsgId right');
@@ -105,7 +116,7 @@ ava_1.test('findAll()', (t) => __awaiter(this, void 0, void 0, function* () {
     t.is(msgList.length, 2, 'Message.findAll with limit 2');
 }));
 ava_1.test('self()', t => {
-    config_1.Config.puppetInstance();
+    config_1.config.puppetInstance();
     const m = new message_1.default();
     m.from(MOCK_USER_ID);
     t.true(m.self(), 'should identify self message true where message from userId');
@@ -143,12 +154,12 @@ ava_1.test.serial('mentioned()', (t) => __awaiter(this, void 0, void 0, function
     };
     let puppet1;
     try {
-        puppet1 = config_1.Config.puppetInstance();
+        puppet1 = config_1.config.puppetInstance();
         puppet1.getContact = mockContactGetter;
     }
     catch (err) {
         puppet1 = { getContact: mockContactGetter };
-        config_1.Config.puppetInstance(puppet1);
+        config_1.config.puppetInstance(puppet1);
     }
     const msg11 = new message_1.default(rawObj11);
     const room11 = msg11.room();

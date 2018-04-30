@@ -1,3 +1,7 @@
+/**
+ * Raven.io
+ */
+import * as Raven from 'raven';
 import { log } from 'brolog';
 import { Puppet } from './puppet';
 export declare type PuppetName = 'web' | 'android' | 'ios';
@@ -25,9 +29,11 @@ export interface ConfigSetting {
     puppetInstance(empty: null): void;
     puppetInstance(instance: Puppet): void;
     puppetInstance(instance?: Puppet | null): Puppet | void;
-    isDocker: boolean;
+    gitVersion(): string | null;
+    npmVersion(): string;
+    dockerMode: boolean;
 }
-export declare const Config: ConfigSetting;
+export declare const config: ConfigSetting;
 export declare type WatchdogFoodName = 'HEARTBEAT' | 'POISON' | 'SCAN';
 export interface WatchdogFood {
     data: any;
@@ -55,5 +61,5 @@ export interface Sayable {
 export interface Sleepable {
     sleep(millisecond: number): Promise<void>;
 }
-export { log };
-export default Config;
+export { log, Raven };
+export default config;

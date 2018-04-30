@@ -1,16 +1,27 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import * as fs     from 'fs'
 import * as path   from 'path'
 
 import {
-  Config,
+  config,
+  Raven,
   RecommendInfo,
   Sayable,
   log,
@@ -403,7 +414,7 @@ export class Message implements Sayable {
   public count()   { return this._counter }
 
   public self(): boolean {
-    const userId = Config.puppetInstance()
+    const userId = config.puppetInstance()
                         .userId
 
     const fromId = this.obj.from
@@ -503,6 +514,7 @@ export class Message implements Sayable {
 
     } catch (e) {
         log.error('Message', 'ready() exception: %s', e.stack)
+        Raven.captureException(e)
         // console.log(e)
         // this.dump()
         // this.dumpRaw()
@@ -607,7 +619,7 @@ export class Message implements Sayable {
       }
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .send(m)
   }
 
@@ -639,7 +651,7 @@ export class MediaMessage extends Message {
     }
 
     // FIXME: decoupling needed
-    this.bridge = (Config.puppetInstance() as PuppetWeb)
+    this.bridge = (config.puppetInstance() as PuppetWeb)
                     .bridge
   }
 
@@ -716,6 +728,7 @@ export class MediaMessage extends Message {
 
     } catch (e) {
       log.warn('MediaMessage', 'ready() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -788,13 +801,14 @@ export class MediaMessage extends Message {
     try {
       await this.ready()
       // FIXME: decoupling needed
-      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
       if (!this.obj.url) {
         throw new Error('no url')
       }
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
       log.warn('MediaMessage', 'stream() exception: %s', e.stack)
+      Raven.captureException(e)
       throw e
     }
   }

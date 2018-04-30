@@ -1,5 +1,24 @@
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 import {
-  Config,
+  config,
+  Raven,
   Sayable,
   log,
 }                     from './config'
@@ -310,14 +329,16 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
-      const avatarUrl = `http://${hostname}${this.obj.avatar}`
-      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      // const hostname = await (config.puppetInstance() as PuppetWeb).browser.hostname()
+      const currentUrl = await (config.puppetInstance() as PuppetWeb).browser.driver.driver.getCurrentUrl();
+      const avatarUrl = `${currentUrl}${this.obj.avatar.substring(1)}`
+      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
       return UtilLib.urlStream(avatarUrl, cookies)
     } catch (err) {
       log.warn('Contact', 'avatar() exception: %s', err.stack)
+      Raven.captureException(err)
       throw err
     }
   }
@@ -368,9 +389,9 @@ export class Contact implements Sayable {
     }
 
     if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + Config.puppetInstance().constructor.name)
-      contactGetter = Config.puppetInstance()
-                            .getContact.bind(Config.puppetInstance())
+      log.silly('Contact', 'get contact via ' + config.puppetInstance().constructor.name)
+      contactGetter = config.puppetInstance()
+                            .getContact.bind(config.puppetInstance())
     }
     if (!contactGetter) {
       throw new Error('no contatGetter')
@@ -385,6 +406,7 @@ export class Contact implements Sayable {
 
     } catch (e) {
       log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -410,7 +432,7 @@ export class Contact implements Sayable {
    * ```
    */
   public self(): boolean {
-    const userId = Config.puppetInstance()
+    const userId = config.puppetInstance()
                           .userId
 
     const selfId = this.id
@@ -501,10 +523,11 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    const contactList = await Config.puppetInstance()
+    const contactList = await config.puppetInstance()
                               .contactFind(filterFunction)
                               .catch(e => {
                                 log.error('Contact', 'findAll() rejected: %s', e.message)
+                                Raven.captureException(e)
                                 return [] // fail safe
                               })
     await Promise.all(contactList.map(c => c.ready()))
@@ -605,7 +628,7 @@ export class Contact implements Sayable {
       return this.obj && this.obj.alias || null
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .contactAlias(this, newAlias)
                   .then(ret => {
                     if (ret) {
@@ -621,6 +644,7 @@ export class Contact implements Sayable {
                   })
                   .catch(e => {
                     log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+                    Raven.captureException(e)
                     return false // fail safe
                   })
   }

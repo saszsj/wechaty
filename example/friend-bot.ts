@@ -1,9 +1,19 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Connecting ChatBots
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
@@ -16,10 +26,10 @@ const QrcodeTerminal = require('qrcode-terminal')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Wechaty,
+  config,
   Contact,
-  Config,
   log,
+  Wechaty,
 }           from '../'
 
 const welcome = `
@@ -47,7 +57,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
@@ -74,14 +84,14 @@ bot
     fileHelper.say(logMsg)
     console.log(logMsg)
 
-    /**
-     *
-     * 1. New Friend Request
-     *
-     * when request is set, we can get verify message from `request.hello`,
-     * and accept this request by `request.accept()`
-     */
     if (request) {
+      /**
+       *
+       * 1. New Friend Request
+       *
+       * when request is set, we can get verify message from `request.hello`,
+       * and accept this request by `request.accept()`
+       */
       if (request.hello === 'ding') {
         logMsg = 'accepted because verify messsage is "ding"'
         request.accept()
@@ -89,12 +99,12 @@ bot
       } else {
         logMsg = 'not auto accepted, because verify message is: ' + request.hello
       }
-    /**
-     *
-     * 2. Friend Ship Confirmed
-     *
-     */
     } else {
+      /**
+       *
+       * 2. Friend Ship Confirmed
+       *
+       */
       logMsg = 'friend ship confirmed with ' + contact.get('name')
     }
   } catch (e) {

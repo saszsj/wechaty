@@ -1,10 +1,19 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Interface for puppet
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const psTree = require('ps-tree')
@@ -17,7 +26,7 @@ import { StateSwitch }  from 'state-switch'
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 import {
-  Config,
+  config,
   HeadName,
   log,
 }                         from '../config'
@@ -38,13 +47,13 @@ export class Browser extends EventEmitter {
   private cookie: BrowserCookie
   public driver: BrowserDriver
 
-  public hostname: string
+  // public hostname: string
 
   public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
   constructor(
     private setting: BrowserSetting = {
-      head: Config.head,
+      head: config.head,
       sessionFile: '',
     },
   ) {
@@ -77,11 +86,11 @@ export class Browser extends EventEmitter {
     this.state.target('open')
     this.state.current('open', false)
 
-    this.hostname = this.cookie.hostname()
+    const hostname = this.cookie.hostname()
 
     // jumpUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const jumpUrl = `https://${this.hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
+    const jumpUrl = `https://${hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
 
     try {
       await this.driver.init()
@@ -118,12 +127,25 @@ export class Browser extends EventEmitter {
     }
   }
 
-  public async open(url: string = `https://${this.hostname}`): Promise<void> {
+  public async hostname(): Promise<string | null> {
+    log.verbose('PuppetWebBrowser', 'hostname()')
+    const domain = await this.execute('return document.domain')
+    log.silly('PuppetWebBrowser', 'hostname() got %s', domain)
+    return domain
+  }
+
+  public async open(url?: string): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
-    if (!this.hostname) {
-      throw new Error('hostname unknown')
+    if (!url) {
+      const hostname = this.cookie.hostname()
+      if (!hostname) {
+        throw new Error('hostname unknown')
+      }
+      url = `https://${hostname}`
     }
+
+    const openUrl = url
 
     // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
@@ -154,7 +176,7 @@ export class Browser extends EventEmitter {
           }, TIMEOUT)
 
           try {
-            await this.driver.get(url)
+            await this.driver.get(openUrl)
             resolve()
           } catch (e) {
             reject(e)

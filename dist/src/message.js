@@ -9,11 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const fs = require("fs");
@@ -221,7 +231,7 @@ class Message {
     typeEx() { return MsgType[this.obj.type]; }
     count() { return this._counter; }
     self() {
-        const userId = config_1.Config.puppetInstance()
+        const userId = config_1.config.puppetInstance()
             .userId;
         const fromId = this.obj.from;
         if (!userId || !fromId) {
@@ -306,6 +316,7 @@ class Message {
             }
             catch (e) {
                 config_1.log.error('Message', 'ready() exception: %s', e.stack);
+                config_1.Raven.captureException(e);
                 // console.log(e)
                 // this.dump()
                 // this.dumpRaw()
@@ -395,7 +406,7 @@ class Message {
                 m.to(this.from());
             }
         }
-        return config_1.Config.puppetInstance()
+        return config_1.config.puppetInstance()
             .send(m);
     }
 }
@@ -418,7 +429,7 @@ class MediaMessage extends Message {
             throw new Error('not supported construct param');
         }
         // FIXME: decoupling needed
-        this.bridge = config_1.Config.puppetInstance()
+        this.bridge = config_1.config.puppetInstance()
             .bridge;
     }
     ready() {
@@ -487,6 +498,7 @@ class MediaMessage extends Message {
             }
             catch (e) {
                 config_1.log.warn('MediaMessage', 'ready() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -547,7 +559,7 @@ class MediaMessage extends Message {
             try {
                 yield this.ready();
                 // FIXME: decoupling needed
-                const cookies = yield config_1.Config.puppetInstance().browser.readCookie();
+                const cookies = yield config_1.config.puppetInstance().browser.readCookie();
                 if (!this.obj.url) {
                     throw new Error('no url');
                 }
@@ -555,6 +567,7 @@ class MediaMessage extends Message {
             }
             catch (e) {
                 config_1.log.warn('MediaMessage', 'stream() exception: %s', e.stack);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });

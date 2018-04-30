@@ -9,10 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const ava_1 = require("ava");
@@ -26,7 +37,7 @@ const puppet_web_1 = require("../../src/puppet-web");
 ava_1.test.serial('login/logout events', (t) => __awaiter(this, void 0, void 0, function* () {
     const pw = new puppet_web_1.default();
     t.truthy(pw, 'should instantiated a PuppetWeb');
-    config_1.Config.puppetInstance(pw);
+    config_1.config.puppetInstance(pw);
     yield pw.init();
     t.pass('should be inited');
     t.is(pw.logined(), false, 'should be not logined');
@@ -46,7 +57,7 @@ ava_1.test.serial('login/logout events', (t) => __awaiter(this, void 0, void 0, 
 ava_1.test.serial('server/browser socketio ding', (t) => __awaiter(this, void 0, void 0, function* () {
     const puppet = new puppet_web_1.default();
     t.truthy(puppet, 'should instantiated a PuppetWeb');
-    config_1.Config.puppetInstance(puppet);
+    config_1.config.puppetInstance(puppet);
     const EXPECTED_DING_DATA = 'dingdong';
     try {
         yield puppet.init();

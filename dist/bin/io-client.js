@@ -19,11 +19,11 @@ My super power: download cloud bot from www.chatie.io
 __________________________________________________
 
 `;
-let token = config_1.Config.token;
+let token = config_1.config.token;
 if (!token) {
     config_1.log.error('Client', 'token not found: please set WECHATY_TOKEN in environment before run io-client');
     // process.exit(-1)
-    token = config_1.Config.DEFAULT_TOKEN;
+    token = config_1.config.DEFAULT_TOKEN;
     config_1.log.warn('Client', `set token to "${token}" for demo purpose`);
 }
 console.log(welcome);

@@ -1,12 +1,19 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class IoClient
- * http://www.wechaty.io
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
@@ -18,7 +25,7 @@
 import { StateSwitch } from 'state-switch'
 
 import {
-  Config,
+  config,
   log as globalLog,
 }                       from './config'
 import { Io }           from './io'
@@ -32,7 +39,7 @@ export class IoClient {
   private state = new StateSwitch<'online', 'offline'>('IoClient', 'offline', globalLog)
 
   constructor(
-    private token: string = Config.token || Config.DEFAULT_TOKEN,
+    private token: string = config.token || config.DEFAULT_TOKEN,
     private log: any = globalLog,
   ) {
     if (!log) {
@@ -134,7 +141,7 @@ export class IoClient {
     return
   }
 
-  public initWeb(port = Config.httpPort) {
+  public initWeb(port = config.httpPort) {
 //    if (process.env.DYNO) {
 //    }
     const app = require('express')()

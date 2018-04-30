@@ -1,10 +1,20 @@
 "use strict";
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Connecting ChatBots
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -48,7 +58,7 @@ Please wait... I'm trying to login in...
 
 `;
 console.log(welcome);
-const bot = _1.Wechaty.instance({ profile: _1.Config.DEFAULT_PROFILE });
+const bot = _1.Wechaty.instance({ profile: _1.config.DEFAULT_PROFILE });
 bot
     .on('login', user => _1.log.info('Bot', `${user.name()} logined`))
     .on('logout', user => _1.log.info('Bot', `${user.name()} logouted`))
@@ -67,14 +77,14 @@ bot
         logMsg = 'received `friend` event from ' + contact.get('name');
         fileHelper.say(logMsg);
         console.log(logMsg);
-        /**
-         *
-         * 1. New Friend Request
-         *
-         * when request is set, we can get verify message from `request.hello`,
-         * and accept this request by `request.accept()`
-         */
         if (request) {
+            /**
+             *
+             * 1. New Friend Request
+             *
+             * when request is set, we can get verify message from `request.hello`,
+             * and accept this request by `request.accept()`
+             */
             if (request.hello === 'ding') {
                 logMsg = 'accepted because verify messsage is "ding"';
                 request.accept();
@@ -82,13 +92,13 @@ bot
             else {
                 logMsg = 'not auto accepted, because verify message is: ' + request.hello;
             }
+        }
+        else {
             /**
              *
              * 2. Friend Ship Confirmed
              *
              */
-        }
-        else {
             logMsg = 'friend ship confirmed with ' + contact.get('name');
         }
     }

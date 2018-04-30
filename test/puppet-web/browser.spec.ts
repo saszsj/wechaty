@@ -1,15 +1,26 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import * as fs  from 'fs'
 import { test } from 'ava'
 
 import {
-  Config,
+  config,
   log,
 }               from '../../'
 
@@ -17,7 +28,10 @@ import {
   Browser,
 }               from '../../src/puppet-web/'
 
-const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
+const TEST_DOMAIN = 'www.chatie.io'
+const TEST_URL = 'https://' + TEST_DOMAIN
+
+const PROFILE = config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
 test('Cookie smoke testing', async t => {
@@ -25,12 +39,12 @@ test('Cookie smoke testing', async t => {
   t.truthy(browser, 'should instanciate a browser instance')
 
   browser.state.target('open')
-  browser.hostname = 'wx.qq.com'
+  // browser.hostname = 'wx.qq.com'
 
   await browser.driver.init()
   t.pass('should init driver')
 
-  await browser.open()
+  await browser.open(TEST_URL)
   t.pass('should opened')
 
   browser.state.current('open')
@@ -49,7 +63,7 @@ test('Cookie smoke testing', async t => {
     name: 'wechaty0',
     value: '8788-0',
     path: '/',
-    domain: '.qq.com',
+    domain: '.chatie.io',
     secure: false,
     expiry: 99999999999999,
   },
@@ -57,7 +71,7 @@ test('Cookie smoke testing', async t => {
     name: 'wechaty1',
     value: '8788-1',
     path: '/',
-    domain: '.qq.com',
+    domain: '.chatie.io',
     secure: false,
     expiry: 99999999999999,
   }]
@@ -73,7 +87,7 @@ test('Cookie smoke testing', async t => {
   t.truthy(cookies1, 'should get cookies1')
   t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
 
-  await browser.open()
+  await browser.open(TEST_URL)
   t.pass('re-opened url')
   const cookieAfterOpen = await browser.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
   t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
@@ -91,8 +105,8 @@ test('Cookie save/load', async t => {
   const profileName = PROFILE + (profileCounter++)
 
   let browser = new Browser({
-      head: Config.head,
-      sessionFile: profileName,
+      head:         config.head,
+      sessionFile:  profileName,
   })
 
   /**
@@ -102,19 +116,19 @@ test('Cookie save/load', async t => {
     t.truthy(browser, 'should get a new Browser')
 
     browser.state.target('open')
-    browser.hostname = 'wx.qq.com'
+    // browser.hostname = 'wx.qq.com'
 
     await browser.driver.init()
     t.pass('should init driver')
 
-    await browser.open()
+    await browser.open(TEST_URL)
     t.pass('opened')
 
     const EXPECTED_COOKIE = {
       name: 'wechaty_save_to_session',
       value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###',
       path: '/',
-      domain: '.wx.qq.com',
+      domain: '.chatie.io',
       secure: false,
       expiry: 99999999999999,
     }
@@ -165,18 +179,18 @@ test('Cookie save/load', async t => {
      */
 
     browser = new Browser({
-      head: Config.head,
-      sessionFile: profileName,
+      head:         config.head,
+      sessionFile:  profileName,
     })
 
     t.pass('should started a new Browser')
 
     browser.state.target('open')
-    browser.hostname = 'wx.qq.com'
+    // browser.hostname = 'wx.qq.com'
 
     await browser.driver.init()
     t.pass('should inited the new Browser')
-    await browser.open()
+    await browser.open(TEST_URL)
     t.pass('should opened')
 
     await browser.loadCookie()
@@ -191,12 +205,31 @@ test('Cookie save/load', async t => {
         log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }
     })
-
-    await browser.driver.quit()
   } catch (e) {
-    if (browser) {
+    t.fail('exception: ' + e.message)
+  } finally {
+    if (browser && browser.driver) {
       await browser.driver.quit()
     }
-    t.fail('exception: ' + e.message)
   }
+})
+
+test('Hostname smoke testing', async t => {
+  const browser = new Browser()
+  t.truthy(browser, 'should instanciate a browser instance')
+
+  browser.state.target('open')
+
+  await browser.driver.init()
+  t.pass('should init driver')
+
+  await browser.open(TEST_URL)
+  t.pass('should opened')
+
+  browser.state.current('open')
+
+  const hostname = await browser.hostname()
+  t.is(hostname, TEST_DOMAIN, 'should get hostname as "chatie.io"')
+
+  await browser.quit()
 })

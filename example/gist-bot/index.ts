@@ -1,11 +1,20 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Connecting ChatBots
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * demo for modulize code for logic
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
  */
 
 /**
@@ -14,7 +23,7 @@
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Config,
+  config,
   Wechaty,
   log,
 }           from '../../'
@@ -32,7 +41,7 @@ Please wait... I'm trying to login in...
 `
 console.log(welcome)
 
-Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {

@@ -1,27 +1,48 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * BrowserDriver
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import {
   Builder,
   Capabilities,
-  WebDriver,
   logging,
-}               from 'selenium-webdriver'
+  Navigation,
+  Options,
+  WebDriver,
+  promise as promiseManager,
+}                             from 'selenium-webdriver'
 
 import {
-  Config,
+  config,
   HeadName,
   log,
-}               from '../config'
+}                             from '../config'
+
+/**
+ * ISSUE #72
+ * Introduce the SELENIUM_PROMISE_MANAGER environment variable.
+ * When set to 1, selenium-webdriver will use the existing ControlFlow scheduler.
+ * When set to 0, the SimpleScheduler will be used.
+ */
+process.env['SELENIUM_PROMISE_MANAGER'] = 0
+promiseManager.USE_PROMISE_MANAGER = false
 
 export class BrowserDriver {
-  private driver: WebDriver
+  public driver: WebDriver
 
   constructor(
     private head: HeadName,
@@ -92,9 +113,9 @@ export class BrowserDriver {
         '--no-sandbox',
       ],  // issue #26 for run inside docker
     }
-    if (Config.isDocker) {
+    if (config.dockerMode) {
       log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
-      options['binary'] = Config.CMD_CHROMIUM
+      options['binary'] = config.CMD_CHROMIUM
     } else {
       /**
        * https://github.com/Chatie/wechaty/pull/416
@@ -203,7 +224,7 @@ export class BrowserDriver {
       // , '--ssl-client-certificate-file=cert.pem' //
     ]
 
-    if (Config.debug) {
+    if (config.debug) {
       phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
       phantomjsArgs.push('--webdriver-loglevel=DEBUG')
       // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
@@ -361,14 +382,14 @@ export class BrowserDriver {
 
   }
 
-  public close()              { return this.driver.close()      as any as Promise<void> }
+  public close()                { return this.driver.close() }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)     { return this.driver.get(url)     as any as Promise<void> }
-  public getSession()         { return this.driver.getSession() as any as Promise<void> }
-  public manage()             { return this.driver.manage()     as any }
-  public navigate()           { return this.driver.navigate()   as any }
-  public quit()               { return this.driver.quit()       as any as Promise<void> }
+  public get(url: string)       { return this.driver.get(url)     as any as Promise<void> }
+  public getSession()           { return this.driver.getSession() as any as Promise<void> }
+  public manage(): Options      { return this.driver.manage() }
+  public navigate(): Navigation { return this.driver.navigate() }
+  public quit()                 { return this.driver.quit()       as any as Promise<void> }
 }
 
 // export default BrowserDriver

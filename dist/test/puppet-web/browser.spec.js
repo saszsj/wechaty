@@ -9,26 +9,39 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const fs = require("fs");
 const ava_1 = require("ava");
 const _1 = require("../../");
 const _2 = require("../../src/puppet-web/");
-const PROFILE = _1.Config.DEFAULT_PROFILE + '-' + process.pid + '-';
+const TEST_DOMAIN = 'www.chatie.io';
+const TEST_URL = 'https://' + TEST_DOMAIN;
+const PROFILE = _1.config.DEFAULT_PROFILE + '-' + process.pid + '-';
 let profileCounter = 1;
 ava_1.test('Cookie smoke testing', (t) => __awaiter(this, void 0, void 0, function* () {
     const browser = new _2.Browser();
     t.truthy(browser, 'should instanciate a browser instance');
     browser.state.target('open');
-    browser.hostname = 'wx.qq.com';
+    // browser.hostname = 'wx.qq.com'
     yield browser.driver.init();
     t.pass('should init driver');
-    yield browser.open();
+    yield browser.open(TEST_URL);
     t.pass('should opened');
     browser.state.current('open');
     const two = yield browser.execute('return 1+1');
@@ -42,7 +55,7 @@ ava_1.test('Cookie smoke testing', (t) => __awaiter(this, void 0, void 0, functi
             name: 'wechaty0',
             value: '8788-0',
             path: '/',
-            domain: '.qq.com',
+            domain: '.chatie.io',
             secure: false,
             expiry: 99999999999999,
         },
@@ -50,7 +63,7 @@ ava_1.test('Cookie smoke testing', (t) => __awaiter(this, void 0, void 0, functi
             name: 'wechaty1',
             value: '8788-1',
             path: '/',
-            domain: '.qq.com',
+            domain: '.chatie.io',
             secure: false,
             expiry: 99999999999999,
         }];
@@ -63,7 +76,7 @@ ava_1.test('Cookie smoke testing', (t) => __awaiter(this, void 0, void 0, functi
     const cookies1 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[1].name).test(c.name); });
     t.truthy(cookies1, 'should get cookies1');
     t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1');
-    yield browser.open();
+    yield browser.open(TEST_URL);
     t.pass('re-opened url');
     const cookieAfterOpen = yield browser.driver.manage().getCookie(EXPECTED_COOKIES[0].name);
     t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url');
@@ -76,7 +89,7 @@ ava_1.test('Cookie smoke testing', (t) => __awaiter(this, void 0, void 0, functi
 ava_1.test('Cookie save/load', (t) => __awaiter(this, void 0, void 0, function* () {
     const profileName = PROFILE + (profileCounter++);
     let browser = new _2.Browser({
-        head: _1.Config.head,
+        head: _1.config.head,
         sessionFile: profileName,
     });
     /**
@@ -85,16 +98,16 @@ ava_1.test('Cookie save/load', (t) => __awaiter(this, void 0, void 0, function* 
     try {
         t.truthy(browser, 'should get a new Browser');
         browser.state.target('open');
-        browser.hostname = 'wx.qq.com';
+        // browser.hostname = 'wx.qq.com'
         yield browser.driver.init();
         t.pass('should init driver');
-        yield browser.open();
+        yield browser.open(TEST_URL);
         t.pass('opened');
         const EXPECTED_COOKIE = {
             name: 'wechaty_save_to_session',
             value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###',
             path: '/',
-            domain: '.wx.qq.com',
+            domain: '.chatie.io',
             secure: false,
             expiry: 99999999999999,
         };
@@ -135,15 +148,15 @@ ava_1.test('Cookie save/load', (t) => __awaiter(this, void 0, void 0, function* 
          * with the same sessionFile: profileName
          */
         browser = new _2.Browser({
-            head: _1.Config.head,
+            head: _1.config.head,
             sessionFile: profileName,
         });
         t.pass('should started a new Browser');
         browser.state.target('open');
-        browser.hostname = 'wx.qq.com';
+        // browser.hostname = 'wx.qq.com'
         yield browser.driver.init();
         t.pass('should inited the new Browser');
-        yield browser.open();
+        yield browser.open(TEST_URL);
         t.pass('should opened');
         yield browser.loadCookie();
         t.pass('should loadSession for new Browser(process)');
@@ -155,13 +168,27 @@ ava_1.test('Cookie save/load', (t) => __awaiter(this, void 0, void 0, function* 
                 _1.log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err);
             }
         });
-        yield browser.driver.quit();
     }
     catch (e) {
-        if (browser) {
-            yield browser.driver.quit();
-        }
         t.fail('exception: ' + e.message);
     }
+    finally {
+        if (browser && browser.driver) {
+            yield browser.driver.quit();
+        }
+    }
+}));
+ava_1.test('Hostname smoke testing', (t) => __awaiter(this, void 0, void 0, function* () {
+    const browser = new _2.Browser();
+    t.truthy(browser, 'should instanciate a browser instance');
+    browser.state.target('open');
+    yield browser.driver.init();
+    t.pass('should init driver');
+    yield browser.open(TEST_URL);
+    t.pass('should opened');
+    browser.state.current('open');
+    const hostname = yield browser.hostname();
+    t.is(hostname, TEST_DOMAIN, 'should get hostname as "chatie.io"');
+    yield browser.quit();
 }));
 //# sourceMappingURL=browser.spec.js.map

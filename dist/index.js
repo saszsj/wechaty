@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("./src/config");
-exports.Config = config_1.Config;
+exports.config = config_1.config;
 exports.log = config_1.log;
 const contact_1 = require("./src/contact");
 exports.Contact = contact_1.default;

@@ -8,9 +8,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 const events_1 = require("events");
-const fs = require("fs");
-const path = require("path");
 const state_switch_1 = require("state-switch");
 const config_1 = require("./config");
 const _1 = require("./puppet-web/");
@@ -52,15 +68,10 @@ class Wechaty extends events_1.EventEmitter {
          * @private
          */
         this.state = new state_switch_1.StateSwitch('Wechaty', 'standby', config_1.log);
-        /**
-         * the npmVersion
-         * @private
-         */
-        this.npmVersion = require('../package.json').version;
         config_1.log.verbose('Wechaty', 'contructor()');
-        setting.head = setting.head || config_1.Config.head;
-        setting.puppet = setting.puppet || config_1.Config.puppet;
-        setting.profile = setting.profile || config_1.Config.profile;
+        setting.head = setting.head || config_1.config.head;
+        setting.puppet = setting.puppet || config_1.config.puppet;
+        setting.profile = setting.profile || config_1.config.profile;
         // setting.port    = setting.port    || Config.port
         if (setting.profile) {
             setting.profile = /\.wechaty\.json$/i.test(setting.profile)
@@ -97,34 +108,17 @@ class Wechaty extends events_1.EventEmitter {
      *  console.log(Wechaty.instance().version(true))
      *  // '0.7.9'
      */
-    version(forceNpm = false) {
-        // TODO: use  git rev-parse HEAD  ?
-        const dotGitPath = path.join(__dirname, '..', '.git'); // only for ts-node, not for dist
-        // TODO: use git rev-parse HEAD ?
-        const gitLogCmd = 'git';
-        const gitLogArgs = ['log', '--oneline', '-1'];
+    static version(forceNpm = false) {
         if (!forceNpm) {
-            try {
-                fs.statSync(dotGitPath).isDirectory();
-                const ss = require('child_process')
-                    .spawnSync(gitLogCmd, gitLogArgs, { cwd: __dirname });
-                if (ss.status !== 0) {
-                    throw new Error(ss.error);
-                }
-                const revision = ss.stdout
-                    .toString()
-                    .trim();
+            const revision = config_1.config.gitVersion();
+            if (revision) {
                 return `#git[${revision}]`;
             }
-            catch (e) {
-                /**
-                 *  1. .git not exist
-                 *  2. git log fail
-                 */
-                config_1.log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message);
-            }
         }
-        return this.npmVersion;
+        return config_1.config.npmVersion();
+    }
+    version(forceNpm) {
+        return Wechaty.version(forceNpm);
     }
     /**
      * @todo document me
@@ -172,6 +166,7 @@ class Wechaty extends events_1.EventEmitter {
             }
             catch (e) {
                 config_1.log.error('Wechaty', 'init() exception: %s', e && e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
             this.state.current('ready');
@@ -239,7 +234,7 @@ class Wechaty extends events_1.EventEmitter {
             // set puppet before init, because we need this.puppet if we quit() before init() finish
             this.puppet = puppet; // force to use base class Puppet interface for better encapsolation
             // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-            config_1.Config.puppetInstance(puppet);
+            config_1.config.puppetInstance(puppet);
             yield puppet.init();
             return puppet;
         });
@@ -263,10 +258,11 @@ class Wechaty extends events_1.EventEmitter {
             }
             const puppetBeforeDie = this.puppet;
             this.puppet = null;
-            config_1.Config.puppetInstance(null);
+            config_1.config.puppetInstance(null);
             yield puppetBeforeDie.quit()
                 .catch(e => {
                 config_1.log.error('Wechaty', 'quit() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             });
             this.state.current('standby');
@@ -284,6 +280,7 @@ class Wechaty extends events_1.EventEmitter {
             yield this.puppet.logout()
                 .catch(e => {
                 config_1.log.error('Wechaty', 'logout() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             });
             return;
@@ -310,6 +307,7 @@ class Wechaty extends events_1.EventEmitter {
             return yield this.puppet.send(message)
                 .catch(e => {
                 config_1.log.error('Wechaty', 'send() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             });
         });
@@ -349,6 +347,7 @@ class Wechaty extends events_1.EventEmitter {
         return this.puppet.ding() // should return 'dong'
             .catch(e => {
             config_1.log.error('Wechaty', 'ding() exception: %s', e.message);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }

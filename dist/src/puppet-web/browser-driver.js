@@ -9,16 +9,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * BrowserDriver
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const selenium_webdriver_1 = require("selenium-webdriver");
 const config_1 = require("../config");
+/**
+ * ISSUE #72
+ * Introduce the SELENIUM_PROMISE_MANAGER environment variable.
+ * When set to 1, selenium-webdriver will use the existing ControlFlow scheduler.
+ * When set to 0, the SimpleScheduler will be used.
+ */
+process.env['SELENIUM_PROMISE_MANAGER'] = 0;
+selenium_webdriver_1.promise.USE_PROMISE_MANAGER = false;
 class BrowserDriver {
     constructor(head) {
         this.head = head;
@@ -80,9 +97,9 @@ class BrowserDriver {
                     '--no-sandbox',
                 ],
             };
-            if (config_1.Config.isDocker) {
+            if (config_1.config.dockerMode) {
                 config_1.log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)');
-                options['binary'] = config_1.Config.CMD_CHROMIUM;
+                options['binary'] = config_1.config.CMD_CHROMIUM;
             }
             else {
                 /**
@@ -169,7 +186,7 @@ class BrowserDriver {
                 '--web-security=false',
                 '--ssl-protocol=any',
             ];
-            if (config_1.Config.debug) {
+            if (config_1.config.debug) {
                 phantomjsArgs.push('--remote-debugger-port=8080'); // XXX: be careful when in production env.
                 phantomjsArgs.push('--webdriver-loglevel=DEBUG');
                 // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')

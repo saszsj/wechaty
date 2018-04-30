@@ -9,14 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class Io
- * http://www.wechaty.io
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const WebSocket = require("ws");
@@ -30,8 +37,8 @@ class Io {
         if (!setting.wechaty || !setting.token) {
             throw new Error('Io must has wechaty & token set');
         }
-        setting.apihost = setting.apihost || config_1.Config.apihost;
-        setting.protocol = setting.protocol || config_1.Config.DEFAULT_PROTOCOL;
+        setting.apihost = setting.apihost || config_1.config.apihost;
+        setting.protocol = setting.protocol || config_1.config.DEFAULT_PROTOCOL;
         this.uuid = setting.wechaty.uuid;
         this.protocol = setting.protocol + '|' + setting.wechaty.uuid;
         config_1.log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]', setting.apihost, setting.token, setting.protocol, this.uuid);
@@ -88,10 +95,13 @@ class Io {
             };
             this.send(initEvent);
         });
-        ws.on('message', (data, flags) => {
+        ws.on('message', data => {
             config_1.log.silly('Io', 'initWebSocket() ws.on(message): %s', data);
             // flags.binary will be set if a binary data is received.
             // flags.masked will be set if the data was masked.
+            if (typeof data !== 'string') {
+                throw new Error('data should be string...');
+            }
             const ioEvent = {
                 name: 'raw',
                 payload: data,

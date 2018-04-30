@@ -1,4 +1,4 @@
-import { Config, Sayable, log } from './src/config';
+import { config, log, Sayable } from './src/config';
 import Contact from './src/contact';
 import FriendRequest from './src/puppet-web/friend-request';
 import IoClient from './src/io-client';
@@ -9,5 +9,5 @@ import Room from './src/room';
 import UtilLib from './src/util-lib';
 import Wechaty from './src/wechaty';
 declare const VERSION: any;
-export { Config, Contact, FriendRequest, IoClient, Message, MediaMessage, MsgType, Puppet, PuppetWeb, Room, Sayable, UtilLib, VERSION, Wechaty, log };
+export { config, Contact, FriendRequest, IoClient, Message, MediaMessage, MsgType, Puppet, PuppetWeb, Room, Sayable, UtilLib, VERSION, Wechaty, log };
 export default Wechaty;

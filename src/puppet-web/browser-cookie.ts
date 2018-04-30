@@ -1,12 +1,19 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * BrowserCookie
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * ISSUE #59
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import * as fs            from 'fs'
@@ -185,19 +192,19 @@ export class BrowserCookie {
   public hostname(): string {
     log.verbose('PuppetWebBrowserCookie', 'hostname()')
 
-    const defaultHostname = 'wx.qq.com'
+    const DEFAULT_HOSTNAME = 'wx.qq.com'
 
     const cookieList = this.getCookiesFromFile()
 
     if (!cookieList || cookieList.length === 0) {
       log.silly('PuppetWebBrowserCookie', 'hostname() no cookie, return default hostname')
-      return defaultHostname
+      return DEFAULT_HOSTNAME
     }
 
     const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
     if (!wxCookieList.length) {
       log.silly('PuppetWebBrowserCookie', 'hostname() no valid cookie in files, return default hostname')
-      return defaultHostname
+      return DEFAULT_HOSTNAME
     }
 
     let domain = wxCookieList[0].domain.slice(1)
@@ -238,7 +245,7 @@ export class BrowserCookie {
 
     // return new Promise((resolve, reject) => {
     try {
-      await (this.driver.manage() as any).addCookie(cookie)
+      await this.driver.manage().addCookie(cookie)
                   // this is old webdriver format
                   // .addCookie(cookie.name, cookie.value, cookie.path
                   //   , cookie.domain, cookie.secure, cookie.expiry)

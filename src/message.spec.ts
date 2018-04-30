@@ -1,14 +1,25 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import { test } from 'ava'
 
 import {
-  Config,
+  config,
   log,
 }                 from './config'
 import Message    from './message'
@@ -18,7 +29,7 @@ const MOCK_USER_ID = 'TEST-USER-ID'
 
 const puppet = new PuppetWeb()
 puppet.userId = MOCK_USER_ID
-Config.puppetInstance(puppet)
+config.puppetInstance(puppet)
 
 test('constructor()', t => {
   /* tslint:disable:max-line-length */
@@ -82,7 +93,7 @@ test.serial('ready()', async t => {
     })
   }
 
-  Config.puppetInstance()
+  config.puppetInstance()
         .getContact = mockGetContact
 
   const m = new Message(rawData)
@@ -120,7 +131,7 @@ test('findAll()', async t => {
 })
 
 test('self()', t => {
-  Config.puppetInstance()
+  config.puppetInstance()
 
   const m = new Message()
   m.from(MOCK_USER_ID)
@@ -172,11 +183,11 @@ test.serial('mentioned()', async t => {
 
   let puppet1
   try {
-    puppet1 = Config.puppetInstance()
+    puppet1 = config.puppetInstance()
     puppet1.getContact = mockContactGetter
   } catch (err) {
     puppet1 = { getContact: mockContactGetter }
-    Config.puppetInstance(puppet1)
+    config.puppetInstance(puppet1)
   }
   const msg11 = new Message(rawObj11)
   const room11 = msg11.room()

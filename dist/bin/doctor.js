@@ -13,8 +13,8 @@ const os = require("os");
 const config_1 = require("../src/config");
 const doctor_1 = require("../src/doctor");
 const wechaty_1 = require("../src/wechaty");
-const wechaty = wechaty_1.default.instance();
-const doctor = new doctor_1.default();
+const wechaty = wechaty_1.Wechaty.instance();
+const doctor = new doctor_1.Doctor();
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         let ipcTestResult;
@@ -32,7 +32,7 @@ function main() {
 
   1. Wechaty version: ${wechaty.version()}
   2. ${os.type()} ${os.arch()} version ${os.release()} memory ${Math.floor(os.freemem() / 1024 / 1024)}/${Math.floor(os.totalmem() / 1024 / 1024)} MB
-  3. Docker: ${config_1.default.isDocker}
+  3. Docker: ${config_1.config.dockerMode}
   4. Node version: ${process.version}
   5. Tcp IPC TEST: ${ipcTestResult}
   6. Chromedriver: ${chromedriverVersion}

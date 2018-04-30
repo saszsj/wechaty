@@ -8,6 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 const events_1 = require("events");
 const config_1 = require("./config");
 const contact_1 = require("./contact");
@@ -68,8 +86,8 @@ class Room extends events_1.EventEmitter {
                 config_1.log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic);
             }
             if (!contactGetter) {
-                contactGetter = config_1.Config.puppetInstance()
-                    .getContact.bind(config_1.Config.puppetInstance());
+                contactGetter = config_1.config.puppetInstance()
+                    .getContact.bind(config_1.config.puppetInstance());
             }
             if (!contactGetter) {
                 throw new Error('no contactGetter');
@@ -88,6 +106,7 @@ class Room extends events_1.EventEmitter {
             }
             catch (e) {
                 config_1.log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -128,7 +147,7 @@ class Room extends events_1.EventEmitter {
         else
             m = textOrMedia;
         m.room(this);
-        return config_1.Config.puppetInstance()
+        return config_1.config.puppetInstance()
             .send(m);
     }
     get(prop) { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]); }
@@ -198,7 +217,7 @@ class Room extends events_1.EventEmitter {
             if (!contact) {
                 throw new Error('contact not found');
             }
-            const n = config_1.Config.puppetInstance()
+            const n = config_1.config.puppetInstance()
                 .roomAdd(this, contact);
             return n;
         });
@@ -209,7 +228,7 @@ class Room extends events_1.EventEmitter {
             if (!contact) {
                 throw new Error('contact not found');
             }
-            const n = yield config_1.Config.puppetInstance()
+            const n = yield config_1.config.puppetInstance()
                 .roomDel(this, contact)
                 .then(_ => this.delLocal(contact));
             return n;
@@ -243,9 +262,11 @@ class Room extends events_1.EventEmitter {
         }
         if (newTopic) {
             config_1.log.verbose('Room', 'topic(%s)', newTopic);
-            config_1.Config.puppetInstance().roomTopic(this, newTopic)
+            config_1.config.puppetInstance()
+                .roomTopic(this, newTopic)
                 .catch(e => {
                 config_1.log.warn('Room', 'topic(newTopic=%s) exception: %s', newTopic, e && e.message || e);
+                config_1.Raven.captureException(e);
             });
             if (!this.obj) {
                 this.obj = {};
@@ -286,10 +307,8 @@ class Room extends events_1.EventEmitter {
             .length > 0;
     }
     owner() {
-        const ownerUin = this.obj && this.obj.ownerUin;
-        const user = config_1.Config.puppetInstance()
-            .user;
-        if (user && user.get('uin') === ownerUin) {
+        const user = config_1.config.puppetInstance().user;
+        if (this.rawObj.IsOwner === 1) {
             return user;
         }
         if (this.rawObj.ChatRoomOwner) {
@@ -387,10 +406,11 @@ class Room extends events_1.EventEmitter {
         if (!contactList || !Array.isArray(contactList)) {
             throw new Error('contactList not found');
         }
-        return config_1.Config.puppetInstance()
+        return config_1.config.puppetInstance()
             .roomCreate(contactList, topic)
             .catch(e => {
             config_1.log.error('Room', 'create() exception: %s', e && e.stack || e.message || e);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }
@@ -415,10 +435,11 @@ class Room extends events_1.EventEmitter {
             else {
                 throw new Error('unsupport topic type');
             }
-            const roomList = yield config_1.Config.puppetInstance()
+            const roomList = yield config_1.config.puppetInstance()
                 .roomFind(filterFunction)
                 .catch(e => {
                 config_1.log.verbose('Room', 'findAll() rejected: %s', e.message);
+                config_1.Raven.captureException(e);
                 return []; // fail safe
             });
             for (let i = 0; i < roomList.length; i++) {

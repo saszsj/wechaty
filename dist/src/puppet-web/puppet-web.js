@@ -9,18 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class PuppetWeb
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * use to control wechat in web browser.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- *
- * Class PuppetWeb
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const config_1 = require("../config");
@@ -42,7 +45,7 @@ class PuppetWeb extends puppet_1.default {
         super();
         this.setting = setting;
         if (!setting.head) {
-            setting.head = config_1.Config.head;
+            setting.head = config_1.config.head;
         }
         this.on('watchdog', watchdog_1.default.onFeed.bind(this));
     }
@@ -79,6 +82,7 @@ class PuppetWeb extends puppet_1.default {
                 this.emit('error', e);
                 yield this.quit();
                 this.state.target('dead');
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -119,16 +123,19 @@ class PuppetWeb extends puppet_1.default {
                     yield this.bridge.quit()
                         .catch(e => {
                         config_1.log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message);
+                        config_1.Raven.captureException(e);
                     });
                     config_1.log.verbose('PuppetWeb', 'quit() bridge.quit() done');
                     yield this.server.quit()
                         .catch(e => {
                         config_1.log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message);
+                        config_1.Raven.captureException(e);
                     });
                     config_1.log.verbose('PuppetWeb', 'quit() server.quit() done');
                     yield this.browser.quit()
                         .catch(e => {
                         config_1.log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message);
+                        config_1.Raven.captureException(e);
                     });
                     config_1.log.verbose('PuppetWeb', 'quit() browser.quit() done');
                     clearTimeout(timer);
@@ -139,6 +146,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.error('PuppetWeb', 'quit() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
             finally {
@@ -164,6 +172,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.error('PuppetWeb', 'initBrowser() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
             return;
@@ -183,6 +192,7 @@ class PuppetWeb extends puppet_1.default {
                 yield this.bridge.init();
             }
             catch (e) {
+                config_1.Raven.captureException(e);
                 if (!this.browser) {
                     config_1.log.warn('PuppetWeb', 'initBridge() without browser?');
                 }
@@ -224,6 +234,7 @@ class PuppetWeb extends puppet_1.default {
             yield this.server.init()
                 .catch(e => {
                 config_1.log.error('PuppetWeb', 'initServer() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             });
             return;
@@ -258,6 +269,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.error('PuppetWeb', 'send() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -306,7 +318,7 @@ class PuppetWeb extends puppet_1.default {
             const first = cookie.find(c => c.name === 'webwx_data_ticket');
             const webwxDataTicket = first && first.value;
             const size = buffer.length;
-            const hostname = this.browser.hostname;
+            const hostname = yield this.browser.hostname();
             const uploadMediaRequest = {
                 BaseRequest: baseRequest,
                 FileMd5: md5,
@@ -383,6 +395,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.error('PuppetWeb', 'send() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 return false;
             }
             return ret;
@@ -414,6 +427,7 @@ class PuppetWeb extends puppet_1.default {
                 }
                 catch (e) {
                     config_1.log.error('PuppetWeb', 'send() exception: %s', e.message);
+                    config_1.Raven.captureException(e);
                     throw e;
                 }
             }
@@ -445,6 +459,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.error('PuppetWeb', 'logout() exception: %s', e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -456,6 +471,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -467,6 +483,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -482,6 +499,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, remark, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -494,6 +512,7 @@ class PuppetWeb extends puppet_1.default {
             .then(idList => idList.map(id => contact_1.default.load(id)))
             .catch(e => {
             config_1.log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }
@@ -505,6 +524,7 @@ class PuppetWeb extends puppet_1.default {
             .then(idList => idList.map(id => room_1.default.load(id)))
             .catch(e => {
             config_1.log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }
@@ -517,6 +537,7 @@ class PuppetWeb extends puppet_1.default {
         return this.bridge.roomDelMember(roomId, contactId)
             .catch(e => {
             config_1.log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }
@@ -529,6 +550,7 @@ class PuppetWeb extends puppet_1.default {
         return this.bridge.roomAddMember(roomId, contactId)
             .catch(e => {
             config_1.log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }
@@ -543,6 +565,7 @@ class PuppetWeb extends puppet_1.default {
         return this.bridge.roomModTopic(roomId, topic)
             .catch(e => {
             config_1.log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message);
+            config_1.Raven.captureException(e);
             throw e;
         });
     }
@@ -564,6 +587,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -584,6 +608,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.warn('PuppetWeb', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -601,6 +626,7 @@ class PuppetWeb extends puppet_1.default {
             }
             catch (e) {
                 config_1.log.warn('PuppetWeb', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });

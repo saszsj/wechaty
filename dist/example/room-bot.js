@@ -18,7 +18,7 @@ const HELPER_CONTACT_NAME = 'Bruce LEE';
  *
  */
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal');
+const qrcodeTerminal = require('qrcode-terminal');
 /**
  * Change `import { ... } from '../'`
  * to     `import { ... } from 'wechaty'`
@@ -51,25 +51,27 @@ Please wait... I'm trying to login in...
 
 `;
 console.log(welcome);
-const bot = _1.Wechaty.instance({ profile: _1.Config.DEFAULT_PROFILE });
+const bot = _1.Wechaty.instance({ profile: _1.config.DEFAULT_PROFILE });
 bot
     .on('scan', (url, code) => {
     if (!/201|200/.test(String(code))) {
         const loginUrl = url.replace(/\/qrcode\//, '/l/');
-        QrcodeTerminal.generate(loginUrl);
+        qrcodeTerminal.generate(loginUrl);
     }
     console.log(`${url}\n[${code}] Scan QR Code in above url to login: `);
 })
     .on('logout', user => _1.log.info('Bot', `${user.name()} logouted`))
     .on('error', e => _1.log.info('Bot', 'error: %s', e))
     .on('login', function (user) {
-    let msg = `${user.name()} logined`;
-    _1.log.info('Bot', msg);
-    this.say(msg);
-    msg = `setting to manageDingRoom() after 3 seconds ... `;
-    _1.log.info('Bot', msg);
-    this.say(msg);
-    setTimeout(manageDingRoom.bind(this), 3000);
+    return __awaiter(this, void 0, void 0, function* () {
+        let msg = `${user.name()} logined`;
+        _1.log.info('Bot', msg);
+        yield this.say(msg);
+        msg = `setting to manageDingRoom() after 3 seconds ... `;
+        _1.log.info('Bot', msg);
+        yield this.say(msg);
+        setTimeout(manageDingRoom.bind(this), 3000);
+    });
 })
     .on('room-join', function (room, inviteeList, inviter) {
     _1.log.info('Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s', room.topic(), inviteeList.map(c => c.name()).join(','), inviter.name());
@@ -86,176 +88,179 @@ bot
     }
 })
     .on('message', function (message) {
-    const room = message.room();
-    const sender = message.from();
-    const content = message.content();
-    console.log((room ? '[' + room.topic() + ']' : '')
-        + '<' + sender.name() + '>'
-        + ':' + message.toStringDigest());
-    if (message.self()) {
-        return;
-    }
-    /**
-     * `ding` will be the magic(toggle) word:
-     *  1. say ding first time, will got a room invitation
-     *  2. say ding in room, will be removed out
-     */
-    if (/^ding$/i.test(content)) {
-        /**
-         *  in-room message
-         */
-        if (room) {
-            if (/^ding/i.test(room.topic())) {
-                /**
-                 * move contact out of room
-                 */
-                getOutRoom(sender, room);
-            }
-            /**
-             * peer to peer message
-             */
+    return __awaiter(this, void 0, void 0, function* () {
+        const room = message.room();
+        const sender = message.from();
+        const content = message.content();
+        console.log((room ? '[' + room.topic() + ']' : '')
+            + '<' + sender.name() + '>'
+            + ':' + message.toStringDigest());
+        if (message.self()) {
+            return; // skip self
         }
-        else {
+        /**
+         * `ding` will be the magic(toggle) word:
+         *  1. say ding first time, will got a room invitation
+         *  2. say ding in room, will be removed out
+         */
+        if (/^ding$/i.test(content)) {
             /**
-             * find room name start with "ding"
+             *  in-room message
              */
-            _1.Room.find({ topic: /^ding/i })
-                .then(dingRoom => {
-                /**
-                 * room found
-                 */
-                if (dingRoom) {
-                    _1.log.info('Bot', 'onMessage: got dingRoom: %s', dingRoom.topic());
+            if (room) {
+                if (/^ding/i.test(room.topic())) {
                     /**
-                     * speaker is already in room
+                     * move contact out of room
                      */
-                    if (dingRoom.has(sender)) {
-                        _1.log.info('Bot', 'onMessage: sender has already in dingRoom');
-                        sender.say('no need to ding again, because you are already in ding room');
-                        // sendMessage({
-                        //   content: 'no need to ding again, because you are already in ding room'
-                        //   , to: sender
-                        // })
+                    getOutRoom(sender, room);
+                }
+                /**
+                 * peer to peer message
+                 */
+            }
+            else {
+                /**
+                 * find room name start with "ding"
+                 */
+                try {
+                    const dingRoom = yield _1.Room.find({ topic: /^ding/i });
+                    if (dingRoom) {
                         /**
-                         * put speaker into room
+                         * room found
                          */
+                        _1.log.info('Bot', 'onMessage: got dingRoom: %s', dingRoom.topic());
+                        if (dingRoom.has(sender)) {
+                            /**
+                             * speaker is already in room
+                             */
+                            _1.log.info('Bot', 'onMessage: sender has already in dingRoom');
+                            sender.say('no need to ding again, because you are already in ding room');
+                            // sendMessage({
+                            //   content: 'no need to ding again, because you are already in ding room'
+                            //   , to: sender
+                            // })
+                        }
+                        else {
+                            /**
+                             * put speaker into room
+                             */
+                            _1.log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', sender.name(), dingRoom.topic());
+                            sender.say('ok, I will put you in ding room!');
+                            putInRoom(sender, dingRoom);
+                        }
                     }
                     else {
-                        _1.log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', sender.name(), dingRoom.topic());
-                        sender.say('ok, I will put you in ding room!');
-                        putInRoom(sender, dingRoom);
-                    }
-                    /**
-                     * room not found
-                     */
-                }
-                else {
-                    _1.log.info('Bot', 'onMessage: dingRoom not found, try to create one');
-                    /**
-                     * create the ding room
-                     */
-                    createDingRoom(sender)
-                        .then(_ => {
+                        /**
+                         * room not found
+                         */
+                        _1.log.info('Bot', 'onMessage: dingRoom not found, try to create one');
+                        /**
+                         * create the ding room
+                         */
+                        yield createDingRoom(sender);
                         /**
                          * listen events from ding room
                          */
                         manageDingRoom();
-                    });
+                    }
                 }
-            })
-                .catch(e => {
-                _1.log.error(e);
-            });
+                catch (e) {
+                    _1.log.error(e);
+                }
+            }
         }
-    }
+    });
 })
     .init()
     .catch(e => console.error(e));
 function manageDingRoom() {
-    _1.log.info('Bot', 'manageDingRoom()');
-    /**
-     * Find Room
-     */
-    _1.Room.find({ topic: /^ding/i })
-        .then(room => {
-        if (!room) {
-            _1.log.warn('Bot', 'there is no room topic ding(yet)');
-            return;
+    return __awaiter(this, void 0, void 0, function* () {
+        _1.log.info('Bot', 'manageDingRoom()');
+        /**
+         * Find Room
+         */
+        try {
+            const room = yield _1.Room.find({ topic: /^ding/i });
+            if (!room) {
+                _1.log.warn('Bot', 'there is no room topic ding(yet)');
+                return;
+            }
+            _1.log.info('Bot', 'start monitor "ding" room join/leave event');
+            /**
+             * Event: Join
+             */
+            room.on('join', function (inviteeList, inviter) {
+                _1.log.verbose('Bot', 'Room EVENT: join - %s, %s', inviteeList.map(c => c.name()).join(', '), inviter.name());
+                checkRoomJoin.call(this, room, inviteeList, inviter);
+            });
+            /**
+             * Event: Leave
+             */
+            room.on('leave', (leaver) => {
+                _1.log.info('Bot', 'Room EVENT: leave - %s leave, byebye', leaver.name());
+            });
+            /**
+             * Event: Topic Change
+             */
+            room.on('topic', (topic, oldTopic, changer) => {
+                _1.log.info('Bot', 'Room EVENT: topic - changed from %s to %s by member %s', oldTopic, topic, changer.name());
+            });
         }
-        _1.log.info('Bot', 'start monitor "ding" room join/leave event');
-        /**
-         * Event: Join
-         */
-        room.on('join', function (inviteeList, inviter) {
-            _1.log.verbose('Bot', 'Room EVENT: join - %s, %s', inviteeList.map(c => c.name()).join(', '), inviter.name());
-            checkRoomJoin.call(this, room, inviteeList, inviter);
-        });
-        /**
-         * Event: Leave
-         */
-        room.on('leave', (leaver) => {
-            _1.log.info('Bot', 'Room EVENT: leave - %s leave, byebye', leaver.name());
-        });
-        /**
-         * Event: Topic Change
-         */
-        room.on('topic', (topic, oldTopic, changer) => {
-            _1.log.info('Bot', 'Room EVENT: topic - changed from %s to %s by member %s', oldTopic, topic, changer.name());
-        });
-    })
-        .catch(e => {
-        _1.log.warn('Bot', 'Room.find rejected: %s', e.stack);
+        catch (e) {
+            _1.log.warn('Bot', 'Room.find rejected: %s', e.stack);
+        }
     });
 }
 function checkRoomJoin(room, inviteeList, inviter) {
-    _1.log.info('Bot', 'checkRoomJoin(%s, %s, %s)', room.topic(), inviteeList.map(c => c.name()).join(','), inviter.name());
-    try {
-        // let to, content
-        const user = bot.self();
-        if (!user) {
-            throw new Error('no user');
+    return __awaiter(this, void 0, void 0, function* () {
+        _1.log.info('Bot', 'checkRoomJoin(%s, %s, %s)', room.topic(), inviteeList.map(c => c.name()).join(','), inviter.name());
+        try {
+            // let to, content
+            const user = bot.self();
+            if (!user) {
+                throw new Error('no user');
+            }
+            if (inviter.id !== user.id) {
+                yield room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.', inviter);
+                yield room.say('Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.', inviteeList);
+                room.topic('ding - warn ' + inviter.name());
+                setTimeout(_ => inviteeList.forEach(c => room.del(c)), 10 * 1000);
+            }
+            else {
+                yield room.say('Welcome to my room! :)');
+                let welcomeTopic;
+                welcomeTopic = inviteeList.map(c => c.name()).join(', ');
+                yield room.topic('ding - welcome ' + welcomeTopic);
+            }
         }
-        if (inviter.id !== user.id) {
-            room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.', inviter);
-            room.say('Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.', inviteeList);
-            room.topic('ding - warn ' + inviter.name());
-            setTimeout(_ => {
-                inviteeList.forEach(c => room.del(c));
-            }, 10000);
+        catch (e) {
+            _1.log.error('Bot', 'checkRoomJoin() exception: %s', e.stack);
         }
-        else {
-            room.say('Welcome to my room! :)');
-            let welcomeTopic;
-            welcomeTopic = inviteeList.map(c => c.name()).join(', ');
-            room.topic('ding - welcome ' + welcomeTopic);
-        }
-    }
-    catch (e) {
-        _1.log.error('Bot', 'checkRoomJoin() exception: %s', e.stack);
-    }
+    });
 }
 function putInRoom(contact, room) {
-    _1.log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic());
-    try {
-        room.add(contact)
-            .catch(e => {
-            _1.log.error('Bot', 'room.add() exception: %s', e.stack);
-        });
-        setTimeout(_ => room.say('Welcome ', contact), 1000);
-    }
-    catch (e) {
-        _1.log.error('Bot', 'putInRoom() exception: ' + e.stack);
-    }
+    return __awaiter(this, void 0, void 0, function* () {
+        _1.log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic());
+        try {
+            yield room.add(contact);
+            setTimeout(_ => room.say('Welcome ', contact), 10 * 1000);
+        }
+        catch (e) {
+            _1.log.error('Bot', 'putInRoom() exception: ' + e.stack);
+        }
+    });
 }
 function getOutRoom(contact, room) {
-    _1.log.info('Bot', 'getOutRoom(%s, %s)', contact, room);
-    try {
-        room.say('You said "ding" in my room, I will remove you out.');
-        room.del(contact);
-    }
-    catch (e) {
-        _1.log.error('Bot', 'getOutRoom() exception: ' + e.stack);
-    }
+    return __awaiter(this, void 0, void 0, function* () {
+        _1.log.info('Bot', 'getOutRoom(%s, %s)', contact, room);
+        try {
+            yield room.say('You said "ding" in my room, I will remove you out.');
+            yield room.del(contact);
+        }
+        catch (e) {
+            _1.log.error('Bot', 'getOutRoom() exception: ' + e.stack);
+        }
+    });
 }
 function getHelperContact() {
     _1.log.info('Bot', 'getHelperContact()');
@@ -276,8 +281,8 @@ function createDingRoom(contact) {
             _1.log.verbose('Bot', 'contactList: %s', contactList.join(','));
             const room = yield _1.Room.create(contactList, 'ding');
             _1.log.info('Bot', 'createDingRoom() new ding room created: %s', room);
-            room.topic('ding - created');
-            room.say('ding - created');
+            yield room.topic('ding - created');
+            yield room.say('ding - created');
             return room;
         }
         catch (e) {

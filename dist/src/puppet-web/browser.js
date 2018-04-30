@@ -9,12 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Interface for puppet
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const psTree = require('ps-tree');
@@ -27,11 +36,12 @@ const browser_cookie_1 = require("./browser-cookie");
 const browser_driver_1 = require("./browser-driver");
 class Browser extends events_1.EventEmitter {
     constructor(setting = {
-            head: config_1.Config.head,
+            head: config_1.config.head,
             sessionFile: '',
         }) {
         super();
         this.setting = setting;
+        // public hostname: string
         this.state = new state_switch_1.StateSwitch('Browser', 'close', config_1.log);
         config_1.log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile);
         this.driver = new browser_driver_1.BrowserDriver(this.setting.head);
@@ -57,10 +67,10 @@ class Browser extends events_1.EventEmitter {
             }
             this.state.target('open');
             this.state.current('open', false);
-            this.hostname = this.cookie.hostname();
+            const hostname = this.cookie.hostname();
             // jumpUrl is used to open in browser for we can set cookies.
             // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-            const jumpUrl = `https://${this.hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`;
+            const jumpUrl = `https://${hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`;
             try {
                 yield this.driver.init();
                 config_1.log.verbose('PuppetWebBrowser', 'init() driver.init() done');
@@ -87,12 +97,25 @@ class Browser extends events_1.EventEmitter {
             }
         });
     }
-    open(url = `https://${this.hostname}`) {
+    hostname() {
+        return __awaiter(this, void 0, void 0, function* () {
+            config_1.log.verbose('PuppetWebBrowser', 'hostname()');
+            const domain = yield this.execute('return document.domain');
+            config_1.log.silly('PuppetWebBrowser', 'hostname() got %s', domain);
+            return domain;
+        });
+    }
+    open(url) {
         return __awaiter(this, void 0, void 0, function* () {
             config_1.log.verbose('PuppetWebBrowser', `open(${url})`);
-            if (!this.hostname) {
-                throw new Error('hostname unknown');
+            if (!url) {
+                const hostname = this.cookie.hostname();
+                if (!hostname) {
+                    throw new Error('hostname unknown');
+                }
+                url = `https://${hostname}`;
             }
+            const openUrl = url;
             // Issue #175
             // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
             const TIMEOUT = 60 * 1000;
@@ -117,7 +140,7 @@ class Browser extends events_1.EventEmitter {
                             reject(e);
                         }), TIMEOUT);
                         try {
-                            yield this.driver.get(url);
+                            yield this.driver.get(openUrl);
                             resolve();
                         }
                         catch (e) {

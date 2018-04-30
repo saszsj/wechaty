@@ -1,13 +1,20 @@
 "use strict";
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class IoClient
- * http://www.wechaty.io
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -29,7 +36,7 @@ const config_1 = require("./config");
 const io_1 = require("./io");
 const wechaty_1 = require("./wechaty");
 class IoClient {
-    constructor(token = config_1.Config.token || config_1.Config.DEFAULT_TOKEN, log = config_1.log) {
+    constructor(token = config_1.config.token || config_1.config.DEFAULT_TOKEN, log = config_1.log) {
         this.token = token;
         this.log = log;
         this.state = new state_switch_1.StateSwitch('IoClient', 'offline', config_1.log);
@@ -121,7 +128,7 @@ class IoClient {
             return;
         });
     }
-    initWeb(port = config_1.Config.httpPort) {
+    initWeb(port = config_1.config.httpPort) {
         //    if (process.env.DYNO) {
         //    }
         const app = require('express')();

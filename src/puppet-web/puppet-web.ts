@@ -1,24 +1,28 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class PuppetWeb
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * use to control wechat in web browser.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- *
- * Class PuppetWeb
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import {
-  Config,
+  config,
   HeadName,
+  log,
+  Raven,
   ScanInfo,
   WatchdogFood,
-  log,
 }                     from '../config'
 
 import Contact        from '../contact'
@@ -71,7 +75,7 @@ export class PuppetWeb extends Puppet {
     super()
 
     if (!setting.head) {
-      setting.head = Config.head
+      setting.head = config.head
     }
     this.on('watchdog', Watchdog.onFeed.bind(this))
   }
@@ -118,6 +122,7 @@ export class PuppetWeb extends Puppet {
       this.emit('error', e)
       await this.quit()
       this.state.target('dead')
+      Raven.captureException(e)
       throw e
     }
   }
@@ -166,18 +171,21 @@ export class PuppetWeb extends Puppet {
         await this.bridge.quit()
                         .catch(e => { // fail safe
                           log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                          Raven.captureException(e)
                         })
         log.verbose('PuppetWeb', 'quit() bridge.quit() done')
 
         await this.server.quit()
                         .catch(e => { // fail safe
                           log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                          Raven.captureException(e)
                         })
         log.verbose('PuppetWeb', 'quit() server.quit() done')
 
         await this.browser.quit()
                   .catch(e => { // fail safe
                     log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                    Raven.captureException(e)
                   })
         log.verbose('PuppetWeb', 'quit() browser.quit() done')
 
@@ -191,6 +199,7 @@ export class PuppetWeb extends Puppet {
 
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     } finally {
 
@@ -219,6 +228,7 @@ export class PuppetWeb extends Puppet {
       await this.browser.init()
     } catch (e) {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
     return
@@ -241,6 +251,7 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.init()
     } catch (e) {
+      Raven.captureException(e)
       if (!this.browser) {
         log.warn('PuppetWeb', 'initBridge() without browser?')
       } else if (this.browser.dead()) {
@@ -283,6 +294,7 @@ export class PuppetWeb extends Puppet {
     await this.server.init()
                 .catch(e => {
                   log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+                  Raven.captureException(e)
                   throw e
                 })
     return
@@ -319,6 +331,7 @@ export class PuppetWeb extends Puppet {
       return obj.BaseRequest
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -372,7 +385,7 @@ export class PuppetWeb extends Puppet {
     const webwxDataTicket = first && first.value
     const size = buffer.length
 
-    const hostname = this.browser.hostname
+    const hostname = await this.browser.hostname()
     const uploadMediaRequest = {
       BaseRequest: baseRequest,
       FileMd5: md5,
@@ -455,6 +468,7 @@ export class PuppetWeb extends Puppet {
       ret = await this.bridge.sendMedia(destinationId, mediaId, msgType)
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
+      Raven.captureException(e)
       return false
     }
     return ret
@@ -491,6 +505,7 @@ export class PuppetWeb extends Puppet {
         ret = await this.bridge.send(destinationId, content)
       } catch (e) {
         log.error('PuppetWeb', 'send() exception: %s', e.message)
+        Raven.captureException(e)
         throw e
       }
     }
@@ -521,6 +536,7 @@ export class PuppetWeb extends Puppet {
       await this.bridge.logout()
     } catch (e) {
       log.error('PuppetWeb', 'logout() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -530,6 +546,7 @@ export class PuppetWeb extends Puppet {
       return await this.bridge.getContact(id)
     } catch (e) {
       log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -539,6 +556,7 @@ export class PuppetWeb extends Puppet {
       return await this.bridge.ding(data)
     } catch (e) {
       log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -555,6 +573,7 @@ export class PuppetWeb extends Puppet {
 
     } catch (e) {
       log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, remark, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -567,6 +586,7 @@ export class PuppetWeb extends Puppet {
                       .then(idList => idList.map(id => Contact.load(id)))
                       .catch(e => {
                         log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }
@@ -579,6 +599,7 @@ export class PuppetWeb extends Puppet {
                       .then(idList => idList.map(id => Room.load(id)))
                       .catch(e => {
                         log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }
@@ -592,6 +613,7 @@ export class PuppetWeb extends Puppet {
     return this.bridge.roomDelMember(roomId, contactId)
                       .catch(e => {
                         log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }
@@ -605,6 +627,7 @@ export class PuppetWeb extends Puppet {
     return this.bridge.roomAddMember(roomId, contactId)
                       .catch(e => {
                         log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }
@@ -621,6 +644,7 @@ export class PuppetWeb extends Puppet {
     return this.bridge.roomModTopic(roomId, topic)
                       .catch(e => {
                         log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }
@@ -645,6 +669,7 @@ export class PuppetWeb extends Puppet {
 
     } catch (e) {
       log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -665,6 +690,7 @@ export class PuppetWeb extends Puppet {
       return await this.bridge.verifyUserRequest(contact.id, hello)
     } catch (e) {
       log.warn('PuppetWeb', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -682,6 +708,7 @@ export class PuppetWeb extends Puppet {
       return await this.bridge.verifyUserOk(contact.id, ticket)
     } catch (e) {
       log.warn('PuppetWeb', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
+      Raven.captureException(e)
       throw e
     }
   }

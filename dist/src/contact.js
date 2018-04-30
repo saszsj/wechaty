@@ -8,6 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 const config_1 = require("./config");
 const message_1 = require("./message");
 const util_lib_1 = require("./util-lib");
@@ -244,14 +262,16 @@ class Contact {
                 throw new Error('Can not get avatar: not ready');
             }
             try {
-                const hostname = config_1.Config.puppetInstance().browser.hostname;
-                const avatarUrl = `http://${hostname}${this.obj.avatar}`;
-                const cookies = yield config_1.Config.puppetInstance().browser.readCookie();
+                // const hostname = await (config.puppetInstance() as PuppetWeb).browser.hostname()
+                const currentUrl = yield config_1.config.puppetInstance().browser.driver.driver.getCurrentUrl();
+                const avatarUrl = `${currentUrl}${this.obj.avatar.substring(1)}`;
+                const cookies = yield config_1.config.puppetInstance().browser.readCookie();
                 config_1.log.silly('Contact', 'avatar() url: %s', avatarUrl);
                 return util_lib_1.UtilLib.urlStream(avatarUrl, cookies);
             }
             catch (err) {
                 config_1.log.warn('Contact', 'avatar() exception: %s', err.stack);
+                config_1.Raven.captureException(err);
                 throw err;
             }
         });
@@ -298,9 +318,9 @@ class Contact {
                 return Promise.resolve(this);
             }
             if (!contactGetter) {
-                config_1.log.silly('Contact', 'get contact via ' + config_1.Config.puppetInstance().constructor.name);
-                contactGetter = config_1.Config.puppetInstance()
-                    .getContact.bind(config_1.Config.puppetInstance());
+                config_1.log.silly('Contact', 'get contact via ' + config_1.config.puppetInstance().constructor.name);
+                contactGetter = config_1.config.puppetInstance()
+                    .getContact.bind(config_1.config.puppetInstance());
             }
             if (!contactGetter) {
                 throw new Error('no contatGetter');
@@ -314,6 +334,7 @@ class Contact {
             }
             catch (e) {
                 config_1.log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message);
+                config_1.Raven.captureException(e);
                 throw e;
             }
         });
@@ -337,7 +358,7 @@ class Contact {
      * ```
      */
     self() {
-        const userId = config_1.Config.puppetInstance()
+        const userId = config_1.config.puppetInstance()
             .userId;
         const selfId = this.id;
         if (!userId || !selfId) {
@@ -418,10 +439,11 @@ class Contact {
             else {
                 throw new Error('unsupport name type');
             }
-            const contactList = yield config_1.Config.puppetInstance()
+            const contactList = yield config_1.config.puppetInstance()
                 .contactFind(filterFunction)
                 .catch(e => {
                 config_1.log.error('Contact', 'findAll() rejected: %s', e.message);
+                config_1.Raven.captureException(e);
                 return []; // fail safe
             });
             yield Promise.all(contactList.map(c => c.ready()));
@@ -469,7 +491,7 @@ class Contact {
         if (newAlias === undefined) {
             return this.obj && this.obj.alias || null;
         }
-        return config_1.Config.puppetInstance()
+        return config_1.config.puppetInstance()
             .contactAlias(this, newAlias)
             .then(ret => {
             if (ret) {
@@ -487,6 +509,7 @@ class Contact {
         })
             .catch(e => {
             config_1.log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message);
+            config_1.Raven.captureException(e);
             return false; // fail safe
         });
     }

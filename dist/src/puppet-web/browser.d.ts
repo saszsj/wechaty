@@ -12,11 +12,11 @@ export declare class Browser extends EventEmitter {
     private setting;
     private cookie;
     driver: BrowserDriver;
-    hostname: string;
     state: StateSwitch<"open", "close">;
     constructor(setting?: BrowserSetting);
     toString(): string;
     init(): Promise<void>;
+    hostname(): Promise<string | null>;
     open(url?: string): Promise<void>;
     refresh(): Promise<void>;
     restart(): Promise<void>;

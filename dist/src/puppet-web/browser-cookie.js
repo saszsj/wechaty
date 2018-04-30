@@ -9,14 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * BrowserCookie
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * ISSUE #59
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 const fs = require("fs");
@@ -159,16 +166,16 @@ class BrowserCookie {
     }
     hostname() {
         config_1.log.verbose('PuppetWebBrowserCookie', 'hostname()');
-        const defaultHostname = 'wx.qq.com';
+        const DEFAULT_HOSTNAME = 'wx.qq.com';
         const cookieList = this.getCookiesFromFile();
         if (!cookieList || cookieList.length === 0) {
             config_1.log.silly('PuppetWebBrowserCookie', 'hostname() no cookie, return default hostname');
-            return defaultHostname;
+            return DEFAULT_HOSTNAME;
         }
         const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name));
         if (!wxCookieList.length) {
             config_1.log.silly('PuppetWebBrowserCookie', 'hostname() no valid cookie in files, return default hostname');
-            return defaultHostname;
+            return DEFAULT_HOSTNAME;
         }
         let domain = wxCookieList[0].domain.slice(1);
         if (domain === 'wechat.com') {

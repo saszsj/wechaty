@@ -1,12 +1,57 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
- * Wechaty - Wechaty for Bot, Connect ChatBots, Chat as a Service
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * https://github.com/wechaty/wechaty/
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
  */
-const isCi = require('is-ci');
-const isDocker = require('is-docker');
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+/**
+ * Raven.io
+ */
+const Raven = require("raven");
+exports.Raven = Raven;
+Raven.disableConsoleAlerts();
+Raven
+    .config(process.env.NODE_ENV === 'production'
+    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672', {
+    release: require('../package.json').version,
+    tags: {
+        git_commit: 'c0deb10c4',
+        platform: !!process.env['WECHATY_DOCKER']
+            ? 'docker'
+            : os.platform(),
+    },
+})
+    .install();
+/*
+try {
+    doSomething(a[0])
+} catch (e) {
+    Raven.captureException(e)
+}
+
+Raven.context(function () {
+  doSomething(a[0])
+})
+ */
+// const isCi      = require('is-ci')
+// const isDocker  = require('is-docker')
 const brolog_1 = require("brolog");
 exports.log = brolog_1.log;
 const logLevel = process.env['WECHATY_LOG'];
@@ -31,14 +76,14 @@ if (/verbose|silly/i.test(logLevel)) {
 }
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-exports.Config = require('../package.json').wechaty;
+exports.config = require('../package.json').wechaty;
 /**
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
  */
-Object.assign(exports.Config, {
-    head: process.env['WECHATY_HEAD'] || exports.Config.DEFAULT_HEAD,
-    puppet: process.env['WECHATY_PUPPET'] || exports.Config.DEFAULT_PUPPET,
-    apihost: process.env['WECHATY_APIHOST'] || exports.Config.DEFAULT_APIHOST,
+Object.assign(exports.config, {
+    apihost: process.env['WECHATY_APIHOST'] || exports.config.DEFAULT_APIHOST,
+    head: process.env['WECHATY_HEAD'] || exports.config.DEFAULT_HEAD,
+    puppet: process.env['WECHATY_PUPPET'] || exports.config.DEFAULT_PUPPET,
     validApiHost,
 });
 function validApiHost(apihost) {
@@ -47,11 +92,11 @@ function validApiHost(apihost) {
     }
     throw new Error('validApiHost() fail for ' + apihost);
 }
-validApiHost(exports.Config.apihost);
+validApiHost(exports.config.apihost);
 /**
  * 2. ENVIRONMENT VARIABLES (only)
  */
-Object.assign(exports.Config, {
+Object.assign(exports.config, {
     port: process.env['WECHATY_PORT'] || null,
     profile: process.env['WECHATY_PROFILE'] || null,
     token: process.env['WECHATY_TOKEN'] || null,
@@ -60,15 +105,15 @@ Object.assign(exports.Config, {
 /**
  * 3. Service Settings
  */
-Object.assign(exports.Config, {
+Object.assign(exports.config, {
     // get PORT form cloud service env, ie: heroku
-    httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || exports.Config.DEFAULT_PORT,
+    httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || exports.config.DEFAULT_PORT,
 });
 /**
  * 4. Envioronment Identify
  */
-Object.assign(exports.Config, {
-    isDocker: isWechatyDocker(),
+Object.assign(exports.config, {
+    dockerMode: !!process.env['WECHATY_DOCKER'],
     isGlobal: isWechatyInstalledGlobal(),
 });
 function isWechatyInstalledGlobal() {
@@ -79,27 +124,6 @@ function isWechatyInstalledGlobal() {
      * 3. otherwise return false
      */
     return false;
-}
-function isWechatyDocker() {
-    /**
-     * false for Continuous Integration System
-     */
-    if (isCi) {
-        return false;
-    }
-    /**
-     * false Cloud9 IDE
-     */
-    const c9 = Object.keys(process.env)
-        .filter(k => /^C9_/.test(k))
-        .length;
-    if (c9 > 7 && process.env['C9_PORT']) {
-        return false;
-    }
-    /**
-     * return indentify result by NPM module `is-docker`
-     */
-    return isDocker();
 }
 function puppetInstance(instance) {
     if (instance === undefined) {
@@ -117,15 +141,48 @@ function puppetInstance(instance) {
     this._puppetInstance = instance;
     return;
 }
-Object.assign(exports.Config, {
+function gitVersion() {
+    const dotGitPath = path.join(__dirname, '..', '.git'); // only for ts-node, not for dist
+    // const gitLogArgs  = ['log', '--oneline', '-1']
+    // TODO: use git rev-parse HEAD ?
+    const gitArgs = ['rev-parse', 'HEAD'];
+    try {
+        // Make sure this is a Wechaty repository
+        fs.statSync(dotGitPath).isDirectory();
+        const ss = require('child_process')
+            .spawnSync('git', gitArgs, { cwd: __dirname });
+        if (ss.status !== 0) {
+            throw new Error(ss.error);
+        }
+        const revision = ss.stdout
+            .toString()
+            .trim()
+            .slice(0, 7);
+        return revision;
+    }
+    catch (e) {
+        /**
+         *  1. .git not exist
+         *  2. git log fail
+         */
+        brolog_1.log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message);
+        return null;
+    }
+}
+function npmVersion() {
+    try {
+        return require('../package.json').version;
+    }
+    catch (e) {
+        brolog_1.log.error('Wechaty', 'npmVersion() exception %s', e.message);
+        Raven.captureException(e);
+        return '0.0.0';
+    }
+}
+Object.assign(exports.config, {
+    gitVersion,
+    npmVersion,
     puppetInstance,
 });
-/**
- * ISSUE #72
- * Introduce the SELENIUM_PROMISE_MANAGER environment variable.
- * When set to 1, selenium-webdriver will use the existing ControlFlow scheduler.
- * When set to 0, the SimpleScheduler will be used.
- */
-process.env['SELENIUM_PROMISE_MANAGER'] = 0;
-exports.default = exports.Config;
+exports.default = exports.config;
 //# sourceMappingURL=config.js.map
